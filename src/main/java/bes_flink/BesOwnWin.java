@@ -1,9 +1,9 @@
 package bes_flink;
 
 import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.Random;
 import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple4;
@@ -12,15 +12,52 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.AscendingTimestampExtractor;
-import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Bes {
 
-	static Logger LOG = LoggerFactory.getLogger(Bes.class);
+class BesWindow
+		implements
+		AggregateWindow<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>> {
+
+	double sum = 0.0;
+
+	@Override
+	public AggregateWindow<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>> factory() {
+		return new BesWindow();
+	}
+
+	@Override
+	public void setup() {
+	}
+
+	@Override
+	public void update(Tuple4<Long, Long, Long, Double> t) {
+		sum += t.f3;
+	}
+
+	@Override
+	public Tuple4<Long, Long, Long, Double> getAggregatedResult(long timestamp,
+			String groupby, Tuple4<Long, Long, Long, Double> triggeringTuple) {
+		return new Tuple4<Long, Long, Long, Double>(triggeringTuple.f0,
+				timestamp, Long.valueOf(groupby), sum);
+	}
+
+	@Override
+	public long getTimestamp(Tuple4<Long, Long, Long, Double> t) {
+		return t.f1;
+	}
+
+	@Override
+	public String getKey(Tuple4<Long, Long, Long, Double> t) {
+		return "" + t.f2;
+	}
+};
+
+public class BesOwnWin {
+
+	static Logger LOG = LoggerFactory.getLogger(BesOwnWin.class);
 
 	@SuppressWarnings("serial")
 	public static void main(String[] args) throws Exception {
@@ -35,8 +72,6 @@ public class Bes {
 
 		// make parameters available in the web interface
 		env.getConfig().setGlobalJobParameters(params);
-
-		// TODO how does Flink manage non aligned windows?
 
 		DataStreamSource<String> in = env.socketTextStream("127.0.0.1", 12345);
 		in.flatMap(
@@ -81,18 +116,31 @@ public class Bes {
 
 					}
 				})
-				.assignTimestampsAndWatermarks(
-						new AscendingTimestampExtractor<Tuple4<Long, Long, Long, Double>>() {
+				.flatMap(
+						new RichFlatMapFunction<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>>() {
+
+							Aggregate<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>> aggregate;
+
+							public void open(Configuration parameters)
+									throws Exception {
+								aggregate = new Aggregate<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>>(
+										1000L * 60L * 60L * 24L,
+										1000L * 60L * 60L * 24L,
+										new BesWindow());
+							}
 
 							@Override
-							public long extractAscendingTimestamp(
-									Tuple4<Long, Long, Long, Double> arg0) {
-								return arg0.f1;
+							public void flatMap(
+									Tuple4<Long, Long, Long, Double> value,
+									Collector<Tuple4<Long, Long, Long, Double>> out)
+									throws Exception {
+								List<Tuple4<Long, Long, Long, Double>> result = aggregate
+										.processTuple(value);
+								for (Tuple4<Long, Long, Long, Double> t : result)
+									out.collect(t);
+
 							}
 						})
-				.keyBy(2)
-				.timeWindow(Time.of(1, TimeUnit.DAYS))
-				.sum(3)
 				.flatMap(
 						new RichFlatMapFunction<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>>() {
 
