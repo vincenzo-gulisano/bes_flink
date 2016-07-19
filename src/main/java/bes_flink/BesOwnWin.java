@@ -16,7 +16,6 @@ import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 class BesWindow
 		implements
 		AggregateWindow<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>> {
@@ -73,7 +72,9 @@ public class BesOwnWin {
 		// make parameters available in the web interface
 		env.getConfig().setGlobalJobParameters(params);
 
-		DataStreamSource<String> in = env.socketTextStream("127.0.0.1", 12345);
+		DataStreamSource<String> in = env
+				.socketTextStream(params.getRequired("injectorIP"),
+						params.getInt("injectorPort"));
 		in.flatMap(
 				new RichFlatMapFunction<String, Tuple4<Long, Long, Long, Double>>() {
 
@@ -184,7 +185,10 @@ public class BesOwnWin {
 
 							}
 
-						}).addSink(new SinkSocket("127.0.0.1", 12346));
+						})
+				.addSink(
+						new SinkSocket(params.getRequired("sinkIP"), params
+								.getInt("sinkPort")));
 
 		env.setParallelism(1);
 

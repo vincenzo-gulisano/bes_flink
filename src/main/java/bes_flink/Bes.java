@@ -38,7 +38,9 @@ public class Bes {
 
 		// TODO how does Flink manage non aligned windows?
 
-		DataStreamSource<String> in = env.socketTextStream("127.0.0.1", 12345);
+		DataStreamSource<String> in = env
+				.socketTextStream(params.getRequired("injectorIP"),
+						params.getInt("injectorPort"));
 		in.flatMap(
 				new RichFlatMapFunction<String, Tuple4<Long, Long, Long, Double>>() {
 
@@ -136,7 +138,10 @@ public class Bes {
 
 							}
 
-						}).addSink(new SinkSocket("127.0.0.1", 12346));
+						})
+				.addSink(
+						new SinkSocket(params.getRequired("sinkIP"), params
+								.getInt("sinkPort")));
 
 		env.setParallelism(1);
 
