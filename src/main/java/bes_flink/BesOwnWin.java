@@ -121,10 +121,10 @@ public class BesOwnWin {
 							ts = sdf.parse(tsString).getTime();
 							double cons = Double.valueOf(value.split(",")[3]);
 
+							stat.increase(1);
 							cons = boundValues ? Math.min(cons, bound) : cons;
 							out.collect(new Tuple4<Long, Long, Long, Double>(
 									sysTS, ts, meter, cons));
-							stat.increase(1);
 						} catch (Exception e) {
 							LOG.warn("Cannot convert input string " + value);
 						}

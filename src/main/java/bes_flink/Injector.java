@@ -81,6 +81,7 @@ public abstract class Injector {
 							- (System.currentTimeMillis() - before);
 					Thread.sleep(sleep > 0 ? sleep : 0);
 					before = System.currentTimeMillis();
+					batchCount = 0;
 				}
 
 			}
