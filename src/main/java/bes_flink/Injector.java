@@ -17,6 +17,8 @@ public abstract class Injector {
 
 	private long sleep_period;
 
+	private long batch_size;
+
 	public void run(String[] args) throws IOException {
 
 		final ParameterTool params = ParameterTool.fromArgs(args);
@@ -24,6 +26,7 @@ public abstract class Injector {
 		stat = new CountStat("", params.getRequired("rateStatFile"), true);
 
 		sleep_period = params.getLong("sleepPeriod");
+		batch_size = params.getLong("batchSize");
 
 		ServerSocket serverSocket = null;
 
@@ -57,15 +60,29 @@ public abstract class Injector {
 			br = new BufferedReader(new FileReader(params.getRequired("input")));
 			System.out.println("Reading file");
 			String line;
+
+			long batchCount = 0;
+			long before = System.currentTimeMillis();
+
 			while ((line = br.readLine()) != null) {
+
 				if (lineCount % 10000 == 0) {
 					System.out.println("Line count: " + lineCount);
 				}
 				out.println(prepareLine(line));
 				out.flush();
 				stat.increase(1);
-				Thread.sleep(sleep_period);
+				batchCount++;
+
 				lineCount++;
+
+				if (batchCount == batch_size) {
+
+					Thread.sleep(sleep_period
+							- (System.currentTimeMillis() - before));
+					before = System.currentTimeMillis();
+				}
+
 			}
 		} catch (IOException e) {
 			System.err.print(e);
