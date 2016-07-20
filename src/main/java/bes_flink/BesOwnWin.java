@@ -98,13 +98,15 @@ public class BesOwnWin {
 
 						stat = new CountStat("", params
 								.getRequired("throughputStatFile"), true);
+						LOG.info("created throughput statistic at  "
+								+ params.getRequired("throughputStatFile"));
 
 					}
 
-					@Override
-					public void close() throws Exception {
-						stat.writeStats();
-					}
+					// @Override
+					// public void close() throws Exception {
+					// stat.writeStats();
+					// }
 
 					public void flatMap(String value,
 							Collector<Tuple4<Long, Long, Long, Double>> out)
