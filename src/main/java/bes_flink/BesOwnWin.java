@@ -103,10 +103,10 @@ public class BesOwnWin {
 
 					}
 
-					@Override
-					public void close() throws Exception {
-						stat.writeStats();
-					}
+					// @Override
+					// public void close() throws Exception {
+					// stat.writeStats();
+					// }
 
 					public void flatMap(String value,
 							Collector<Tuple4<Long, Long, Long, Double>> out)
