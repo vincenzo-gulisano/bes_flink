@@ -84,6 +84,8 @@ public class BesOwnWin {
 					boolean boundValues = false;
 					double bound = 0;
 
+					private CountStat stat;
+
 					public void open(Configuration parameters) throws Exception {
 						ParameterTool params = (ParameterTool) getRuntimeContext()
 								.getExecutionConfig().getGlobalJobParameters();
@@ -93,6 +95,15 @@ public class BesOwnWin {
 							LOG.info("Set bound to " + bound);
 						}
 						sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+						stat = new CountStat("", params
+								.getRequired("throughputStatFile"), true);
+
+					}
+
+					@Override
+					public void close() throws Exception {
+						stat.writeStats();
 					}
 
 					public void flatMap(String value,
@@ -111,6 +122,7 @@ public class BesOwnWin {
 							cons = boundValues ? Math.min(cons, bound) : cons;
 							out.collect(new Tuple4<Long, Long, Long, Double>(
 									sysTS, ts, meter, cons));
+							stat.increase(1);
 						} catch (Exception e) {
 							LOG.warn("Cannot convert input string " + value);
 						}
