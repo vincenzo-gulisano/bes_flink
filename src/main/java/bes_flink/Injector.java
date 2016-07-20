@@ -77,9 +77,9 @@ public abstract class Injector {
 				lineCount++;
 
 				if (batchCount == batch_size) {
-
-					Thread.sleep(sleep_period
-							- (System.currentTimeMillis() - before));
+					long sleep = sleep_period
+							- (System.currentTimeMillis() - before);
+					Thread.sleep(sleep > 0 ? sleep : 0);
 					before = System.currentTimeMillis();
 				}
 
