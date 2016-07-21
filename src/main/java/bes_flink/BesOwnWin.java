@@ -6,11 +6,14 @@ import java.util.Random;
 import java.util.TimeZone;
 
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
+import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.Collector;
@@ -77,7 +80,7 @@ public class BesOwnWin {
 				.socketTextStream(params.getRequired("injectorIP"),
 						params.getInt("injectorPort"));
 
-		SingleOutputStreamOperator<Tuple4<Long, Long, Long, Double>> conv = in
+		DataStream<Tuple4<Long, Long, Long, Double>> conv = in
 				.flatMap(
 						new RichFlatMapFunction<String, Tuple4<Long, Long, Long, Double>>() {
 
@@ -140,9 +143,9 @@ public class BesOwnWin {
 								}
 
 							}
-						}).startNewChain();
+						}).startNewChain().setParallelism(3).rebalance();
 
-		SingleOutputStreamOperator<Tuple4<Long, Long, Long, Double>> agg = conv
+		KeyedStream<Tuple4<Long, Long, Long, Double>, Tuple> agg = conv
 				.flatMap(
 						new RichFlatMapFunction<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>>() {
 
@@ -167,7 +170,7 @@ public class BesOwnWin {
 									out.collect(t);
 
 							}
-						}).startNewChain().setParallelism(2);
+						}).startNewChain().setParallelism(2).keyBy(2);
 
 		SingleOutputStreamOperator<Tuple4<Long, Long, Long, Double>> map = agg
 				.flatMap(
@@ -213,7 +216,7 @@ public class BesOwnWin {
 
 							}
 
-						}).startNewChain().setParallelism(2);
+						}).startNewChain();
 
 		map.addSink(new SinkSocket(params.getRequired("sinkIP"), params
 				.getInt("sinkPort")));
