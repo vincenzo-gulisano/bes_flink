@@ -70,7 +70,7 @@ public abstract class Injector {
 					System.out.println("Line count: " + lineCount);
 				}
 				out.println(prepareLine(line));
-				out.flush();
+
 				stat.increase(1);
 				batchCount++;
 
@@ -79,7 +79,8 @@ public abstract class Injector {
 				if (batchCount == batch_size) {
 					long sleep = sleep_period
 							- (System.currentTimeMillis() - before);
-					Thread.sleep(sleep > 0 ? sleep : 0);
+					if (sleep > 0)
+						Thread.sleep(sleep);
 					before = System.currentTimeMillis();
 					batchCount = 0;
 				}

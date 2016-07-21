@@ -15,7 +15,7 @@ for batch_size in [1, 2, 3, 4, 5]:
     throughputs['batch' + str(batch_size)] = []
     keys.append('batch' + str(batch_size))
 
-    for sleep_period in [100, 50, 25, 10, 5]:
+    for sleep_period in [100, 50, 25, 10, 5, 2, 1, 0]:
 
         input_rate_avgs = []
         throughput_avgs = []
