@@ -78,124 +78,142 @@ public class BesOwnWin {
 						params.getInt("injectorPort"));
 
 		SingleOutputStreamOperator<Tuple4<Long, Long, Long, Double>> conv = in
-				.flatMap(new RichFlatMapFunction<String, Tuple4<Long, Long, Long, Double>>() {
+				.flatMap(
+						new RichFlatMapFunction<String, Tuple4<Long, Long, Long, Double>>() {
 
-					SimpleDateFormat sdf = new SimpleDateFormat(
-							"yyyy-MM-dd HH:mm:ss");
+							SimpleDateFormat sdf = new SimpleDateFormat(
+									"yyyy-MM-dd HH:mm:ss");
 
-					boolean boundValues = false;
-					double bound = 0;
+							boolean boundValues = false;
+							double bound = 0;
 
-					private CountStat stat;
+							private CountStat stat;
 
-					public void open(Configuration parameters) throws Exception {
-						ParameterTool params = (ParameterTool) getRuntimeContext()
-								.getExecutionConfig().getGlobalJobParameters();
-						if (params.has("bound")) {
-							boundValues = true;
-							bound = Double.valueOf(params.get("bound"));
-							LOG.info("Set bound to " + bound);
-						}
-						sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+							public void open(Configuration parameters)
+									throws Exception {
+								ParameterTool params = (ParameterTool) getRuntimeContext()
+										.getExecutionConfig()
+										.getGlobalJobParameters();
+								if (params.has("bound")) {
+									boundValues = true;
+									bound = Double.valueOf(params.get("bound"));
+									LOG.info("Set bound to " + bound);
+								}
+								sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-						stat = new CountStat("", params
-								.getRequired("throughputStatFile"), true);
-						LOG.info("created throughput statistic at  "
-								+ params.getRequired("throughputStatFile"));
+								stat = new CountStat("", params
+										.getRequired("throughputStatFile"),
+										true);
+								LOG.info("created throughput statistic at  "
+										+ params.getRequired("throughputStatFile"));
 
-					}
+							}
 
-					// @Override
-					// public void close() throws Exception {
-					// stat.writeStats();
-					// }
+							// @Override
+							// public void close() throws Exception {
+							// stat.writeStats();
+							// }
 
-					public void flatMap(String value,
-							Collector<Tuple4<Long, Long, Long, Double>> out)
-							throws Exception {
+							public void flatMap(
+									String value,
+									Collector<Tuple4<Long, Long, Long, Double>> out)
+									throws Exception {
 
-						long ts = -1;
-						try {
+								long ts = -1;
+								try {
 
-							long sysTS = Long.valueOf(value.split(",")[0]);
-							long meter = Long.valueOf(value.split(",")[1]);
-							String tsString = value.split(",")[2];
-							ts = sdf.parse(tsString).getTime();
-							double cons = Double.valueOf(value.split(",")[3]);
+									long sysTS = Long.valueOf(value.split(",")[0]);
+									long meter = Long.valueOf(value.split(",")[1]);
+									String tsString = value.split(",")[2];
+									ts = sdf.parse(tsString).getTime();
+									double cons = Double.valueOf(value
+											.split(",")[3]);
 
-							stat.increase(1);
-							cons = boundValues ? Math.min(cons, bound) : cons;
-							out.collect(new Tuple4<Long, Long, Long, Double>(
-									sysTS, ts, meter, cons));
-						} catch (Exception e) {
-							LOG.warn("Cannot convert input string " + value);
-						}
+									stat.increase(1);
+									cons = boundValues ? Math.min(cons, bound)
+											: cons;
+									out.collect(new Tuple4<Long, Long, Long, Double>(
+											sysTS, ts, meter, cons));
+								} catch (Exception e) {
+									LOG.warn("Cannot convert input string "
+											+ value);
+								}
 
-					}
-				}).startNewChain();
+							}
+						}).startNewChain();
 
 		SingleOutputStreamOperator<Tuple4<Long, Long, Long, Double>> agg = conv
-				.flatMap(new RichFlatMapFunction<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>>() {
+				.flatMap(
+						new RichFlatMapFunction<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>>() {
 
-					Aggregate<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>> aggregate;
+							Aggregate<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>> aggregate;
 
-					public void open(Configuration parameters) throws Exception {
-						aggregate = new Aggregate<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>>(
-								1000L * 60L * 60L * 24L,
-								1000L * 60L * 60L * 24L, new BesWindow());
-					}
+							public void open(Configuration parameters)
+									throws Exception {
+								aggregate = new Aggregate<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>>(
+										1000L * 60L * 60L * 24L,
+										1000L * 60L * 60L * 24L,
+										new BesWindow());
+							}
 
-					@Override
-					public void flatMap(Tuple4<Long, Long, Long, Double> value,
-							Collector<Tuple4<Long, Long, Long, Double>> out)
-							throws Exception {
-						List<Tuple4<Long, Long, Long, Double>> result = aggregate
-								.processTuple(value);
-						for (Tuple4<Long, Long, Long, Double> t : result)
-							out.collect(t);
+							@Override
+							public void flatMap(
+									Tuple4<Long, Long, Long, Double> value,
+									Collector<Tuple4<Long, Long, Long, Double>> out)
+									throws Exception {
+								List<Tuple4<Long, Long, Long, Double>> result = aggregate
+										.processTuple(value);
+								for (Tuple4<Long, Long, Long, Double> t : result)
+									out.collect(t);
 
-					}
-				}).startNewChain();
+							}
+						}).startNewChain().setParallelism(2);
 
 		SingleOutputStreamOperator<Tuple4<Long, Long, Long, Double>> map = agg
-				.flatMap(new RichFlatMapFunction<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>>() {
+				.flatMap(
+						new RichFlatMapFunction<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>>() {
 
-					boolean boundValues = false;
-					double bound = 0;
-					double maxCons = 0;
-					private Random r;
+							boolean boundValues = false;
+							double bound = 0;
+							double maxCons = 0;
+							private Random r;
 
-					public void open(Configuration parameters) throws Exception {
-						ParameterTool params = (ParameterTool) getRuntimeContext()
-								.getExecutionConfig().getGlobalJobParameters();
-						if (params.has("bound")) {
-							boundValues = true;
-							bound = Double.valueOf(params.get("bound"));
-							LOG.info("Set bound to " + bound);
-						}
-						maxCons = params.getDouble("maxCons");
-						r = new Random();
-					}
+							public void open(Configuration parameters)
+									throws Exception {
+								ParameterTool params = (ParameterTool) getRuntimeContext()
+										.getExecutionConfig()
+										.getGlobalJobParameters();
+								if (params.has("bound")) {
+									boundValues = true;
+									bound = Double.valueOf(params.get("bound"));
+									LOG.info("Set bound to " + bound);
+								}
+								maxCons = params.getDouble("maxCons");
+								r = new Random();
+							}
 
-					private double laplace(double lambda) {
-						double u = r.nextDouble() * -1 + 0.5;
-						return -1
-								* (lambda * Math.signum(u) * Math
-										.log(1 - 2 * Math.abs(u)));
-					}
+							private double laplace(double lambda) {
+								double u = r.nextDouble() * -1 + 0.5;
+								return -1
+										* (lambda * Math.signum(u) * Math
+												.log(1 - 2 * Math.abs(u)));
+							}
 
-					@Override
-					public void flatMap(Tuple4<Long, Long, Long, Double> value,
-							Collector<Tuple4<Long, Long, Long, Double>> out)
-							throws Exception {
+							@Override
+							public void flatMap(
+									Tuple4<Long, Long, Long, Double> value,
+									Collector<Tuple4<Long, Long, Long, Double>> out)
+									throws Exception {
 
-						double noise = laplace(boundValues ? bound : maxCons);
-						out.collect(new Tuple4<Long, Long, Long, Double>(
-								value.f0, value.f1, value.f2, value.f3 + noise));
+								double noise = laplace(boundValues ? bound
+										: maxCons);
+								out.collect(new Tuple4<Long, Long, Long, Double>(
+										value.f0, value.f1, value.f2, value.f3
+												+ noise));
 
-					}
+							}
 
-				}).startNewChain();
+						}).startNewChain().setParallelism(2);
 
 		map.addSink(new SinkSocket(params.getRequired("sinkIP"), params
 				.getInt("sinkPort")));
