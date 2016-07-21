@@ -132,7 +132,7 @@ public class BesOwnWin {
 						}
 
 					}
-				});
+				}).startNewChain();
 
 		SingleOutputStreamOperator<Tuple4<Long, Long, Long, Double>> agg = conv
 				.flatMap(new RichFlatMapFunction<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>>() {
@@ -155,7 +155,7 @@ public class BesOwnWin {
 							out.collect(t);
 
 					}
-				});
+				}).startNewChain();
 
 		SingleOutputStreamOperator<Tuple4<Long, Long, Long, Double>> map = agg
 				.flatMap(new RichFlatMapFunction<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>>() {
@@ -195,7 +195,7 @@ public class BesOwnWin {
 
 					}
 
-				});
+				}).startNewChain();
 
 		map.addSink(new SinkSocket(params.getRequired("sinkIP"), params
 				.getInt("sinkPort")));
