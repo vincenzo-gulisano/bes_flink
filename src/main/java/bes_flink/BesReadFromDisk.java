@@ -10,6 +10,7 @@ import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.tuple.Tuple5;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.core.fs.FileSystem.WriteMode;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
@@ -95,12 +96,12 @@ public class BesReadFromDisk {
 								long ts = -1;
 								try {
 
-									long sysTS = Long.valueOf(value.split(",")[0]);
-									long meter = Long.valueOf(value.split(",")[1]);
-									String tsString = value.split(",")[2];
+									long sysTS = System.currentTimeMillis();
+									long meter = Long.valueOf(value.split(",")[0]);
+									String tsString = value.split(",")[1];
 									ts = sdf.parse(tsString).getTime();
 									double cons = Double.valueOf(value
-											.split(",")[3]);
+											.split(",")[2]);
 
 									stat.increase(1);
 									cons = boundValues ? Math.min(cons, bound)
@@ -230,7 +231,8 @@ public class BesReadFromDisk {
 
 						}).startNewChain().name("map");
 
-		map.writeAsCsv(params.getRequired("outputFile")).name("sink");
+		map.writeAsCsv(params.getRequired("outputFile"), WriteMode.OVERWRITE)
+				.name("sink");
 
 		env.execute("bes");
 
