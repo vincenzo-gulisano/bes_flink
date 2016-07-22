@@ -6,17 +6,23 @@ import java.util.Random;
 import java.util.TimeZone;
 
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
+import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple4;
+import org.apache.flink.api.java.tuple.Tuple5;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import scalegate.SGTuple;
+import scalegate.ScaleGate;
+import scalegate.ScaleGateAArrImpl;
 
 class BesWindow
 		implements
@@ -56,12 +62,43 @@ class BesWindow
 	}
 };
 
+class SGTupleContainer implements SGTuple {
+
+	private Tuple4<Long, Long, Long, Double> t;
+
+	public SGTupleContainer(Tuple5<Long, Long, Long, Double, Integer> t) {
+		this.t = new Tuple4<Long, Long, Long, Double>(t.f0, t.f1, t.f2, t.f3);
+	}
+
+	public Tuple4<Long, Long, Long, Double> getT() {
+		return t;
+	}
+
+	@Override
+	public int compareTo(SGTuple o) {
+		if (getTS() == o.getTS()) {
+			return 0;
+		} else {
+			return getTS() > o.getTS() ? 1 : -1;
+		}
+	}
+
+	@Override
+	public long getTS() {
+		return t.f1;
+	}
+
+}
+
 public class BesOwnWin {
 
 	static Logger LOG = LoggerFactory.getLogger(BesOwnWin.class);
 
 	@SuppressWarnings("serial")
 	public static void main(String[] args) throws Exception {
+
+		final int conv_parallelism = 3;
+		final int agg_parallelism = 2;
 
 		final ParameterTool params = ParameterTool.fromArgs(args);
 
@@ -74,19 +111,21 @@ public class BesOwnWin {
 		// make parameters available in the web interface
 		env.getConfig().setGlobalJobParameters(params);
 
-		DataStreamSource<String> in = env
+		SingleOutputStreamOperator<String> in = env
 				.socketTextStream(params.getRequired("injectorIP"),
-						params.getInt("injectorPort"));
+						params.getInt("injectorPort")).name("in")
+				.startNewChain();
 
-		DataStream<Tuple4<Long, Long, Long, Double>> conv = in
+		DataStream<Tuple5<Long, Long, Long, Double, Integer>> conv = in
 				.flatMap(
-						new RichFlatMapFunction<String, Tuple4<Long, Long, Long, Double>>() {
+						new RichFlatMapFunction<String, Tuple5<Long, Long, Long, Double, Integer>>() {
 
 							SimpleDateFormat sdf = new SimpleDateFormat(
 									"yyyy-MM-dd HH:mm:ss");
 
 							boolean boundValues = false;
 							double bound = 0;
+							int subtaskIndex;
 
 							private CountStat stat;
 
@@ -107,17 +146,19 @@ public class BesOwnWin {
 										true);
 								LOG.info("created throughput statistic at  "
 										+ params.getRequired("throughputStatFile"));
+								subtaskIndex = getRuntimeContext()
+										.getIndexOfThisSubtask();
 
 							}
 
-							// @Override
-							// public void close() throws Exception {
-							// stat.writeStats();
-							// }
+							@Override
+							public void close() throws Exception {
+								stat.writeStats();
+							}
 
 							public void flatMap(
 									String value,
-									Collector<Tuple4<Long, Long, Long, Double>> out)
+									Collector<Tuple5<Long, Long, Long, Double, Integer>> out)
 									throws Exception {
 
 								long ts = -1;
@@ -133,21 +174,25 @@ public class BesOwnWin {
 									stat.increase(1);
 									cons = boundValues ? Math.min(cons, bound)
 											: cons;
-									out.collect(new Tuple4<Long, Long, Long, Double>(
-											sysTS, ts, meter, cons));
+									out.collect(new Tuple5<Long, Long, Long, Double, Integer>(
+											sysTS, ts, meter, cons,
+											subtaskIndex));
 								} catch (Exception e) {
 									LOG.warn("Cannot convert input string "
 											+ value);
 								}
 
 							}
-						}).startNewChain();//.setParallelism(3).rebalance();
+						}).startNewChain().setParallelism(conv_parallelism)
+				.name("conv").rebalance();
 
-		SingleOutputStreamOperator<Tuple4<Long, Long, Long, Double>> agg = conv
+		KeyedStream<Tuple4<Long, Long, Long, Double>, Tuple> agg = conv
 				.flatMap(
-						new RichFlatMapFunction<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>>() {
+						new RichFlatMapFunction<Tuple5<Long, Long, Long, Double, Integer>, Tuple4<Long, Long, Long, Double>>() {
 
 							Aggregate<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>> aggregate;
+
+							ScaleGate sg;
 
 							public void open(Configuration parameters)
 									throws Exception {
@@ -155,20 +200,33 @@ public class BesOwnWin {
 										1000L * 60L * 60L * 24L,
 										1000L * 60L * 60L * 24L,
 										new BesWindow());
+								sg = new ScaleGateAArrImpl(3, conv_parallelism,
+										1);
 							}
 
 							@Override
 							public void flatMap(
-									Tuple4<Long, Long, Long, Double> value,
+									Tuple5<Long, Long, Long, Double, Integer> value,
 									Collector<Tuple4<Long, Long, Long, Double>> out)
 									throws Exception {
-								List<Tuple4<Long, Long, Long, Double>> result = aggregate
-										.processTuple(value);
-								for (Tuple4<Long, Long, Long, Double> t : result)
-									out.collect(t);
+
+								sg.addTuple(new SGTupleContainer(value),
+										value.f4);
+
+								SGTuple readyT = sg.getNextReadyTuple(0);
+								while (readyT != null) {
+
+									List<Tuple4<Long, Long, Long, Double>> result = aggregate
+											.processTuple(((SGTupleContainer) readyT)
+													.getT());
+									for (Tuple4<Long, Long, Long, Double> t : result)
+										out.collect(t);
+								}
 
 							}
-						}).startNewChain();//.setParallelism(2).keyBy(2);
+
+						}).startNewChain().setParallelism(agg_parallelism)
+				.name("agg").keyBy(2);
 
 		SingleOutputStreamOperator<Tuple4<Long, Long, Long, Double>> map = agg
 				.flatMap(
@@ -214,10 +272,11 @@ public class BesOwnWin {
 
 							}
 
-						}).startNewChain();
+						}).startNewChain().name("map");
 
-		map.addSink(new SinkSocket(params.getRequired("sinkIP"), params
-				.getInt("sinkPort")));
+		map.addSink(
+				new SinkSocket(params.getRequired("sinkIP"), params
+						.getInt("sinkPort"))).name("sink");
 
 		env.execute("bes");
 

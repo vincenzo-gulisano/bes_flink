@@ -23,15 +23,15 @@ for batch_size in [1, 2, 3, 4, 5]:
         for repetition in [0, 1, 2, 3, 4]:
             files_folder = 'exp_' + str(sleep_period) + '_' + str(batch_size) + '_' + str(repetition) + '/'
 
-            # # IF YOU WANT TO CREATE THE GRAPHS
-            # [input_rate_ts, input_rate_v] = read_file_adjust_timestamps_and_create_graph_time_value_simple(
-            #         base_folder + files_folder + 'input_rate.csv', 'Input rate', 'Time (s)', 'Input rate (t/s)',
-            #         base_folder + files_folder + 'input_rate.pdf',
-            # )
-            # [throughput_ts, throughput_v] = read_file_adjust_timestamps_and_create_graph_time_value_simple(
-            #         base_folder + files_folder + 'throughput.csv', 'Throughput', 'Time (s)', 'Throughput (t/s)',
-            #         base_folder + files_folder + 'throughput.pdf',
-            # )
+            # IF YOU WANT TO CREATE THE GRAPHS
+            [input_rate_ts, input_rate_v] = read_file_adjust_timestamps_and_create_graph_time_value_simple(
+                    base_folder + files_folder + 'input_rate.csv', 'Input rate', 'Time (s)', 'Input rate (t/s)',
+                    base_folder + files_folder + 'input_rate.pdf',
+            )
+            [throughput_ts, throughput_v] = read_file_adjust_timestamps_and_create_graph_time_value_simple(
+                    base_folder + files_folder + 'throughput.csv', 'Throughput', 'Time (s)', 'Throughput (t/s)',
+                    base_folder + files_folder + 'throughput.pdf',
+            )
 
             # IF YOU JUST WANT THE DATA
             input_rate_avgs.append(read_file_adjust_timestamps_get_average_within_steady_state(
