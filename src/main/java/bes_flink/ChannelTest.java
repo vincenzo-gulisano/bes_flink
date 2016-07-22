@@ -156,8 +156,7 @@ public class ChannelTest {
 						out.collect(value);
 
 					}
-				}).startNewChain().setParallelism(conv_parallelism)
-				.name("conv").rebalance();
+				}).startNewChain().setParallelism(1).name("conv").rebalance();
 
 		forward.addSink(
 				new ChannelSinkSocket(params.getRequired("sinkIP"), params
