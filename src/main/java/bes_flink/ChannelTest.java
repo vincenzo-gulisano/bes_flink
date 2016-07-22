@@ -153,6 +153,7 @@ public class ChannelTest {
 					public void flatMap(String value, Collector<String> out)
 							throws Exception {
 
+						stat.increase(1);
 						out.collect(value);
 
 					}
