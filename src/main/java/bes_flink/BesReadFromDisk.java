@@ -121,8 +121,7 @@ public class BesReadFromDisk {
 								}
 
 							}
-						}).startNewChain().setParallelism(conv_parallelism)
-				.name("conv").rebalance();
+						}).setParallelism(conv_parallelism).name("conv");
 
 		SingleOutputStreamOperator<Tuple4<Long, Long, Long, Double>> agg = conv
 				.keyBy(2)
@@ -182,8 +181,7 @@ public class BesReadFromDisk {
 
 							}
 
-						}).startNewChain().setParallelism(agg_parallelism)
-				.name("agg");
+						}).setParallelism(agg_parallelism).name("agg");
 
 		SingleOutputStreamOperator<Tuple4<Long, Long, Long, Double>> map = agg
 				.flatMap(
@@ -229,7 +227,7 @@ public class BesReadFromDisk {
 
 							}
 
-						}).startNewChain().name("map");
+						}).name("map");
 
 		map.writeAsCsv(params.getRequired("outputFile"), WriteMode.OVERWRITE)
 				.name("sink");
