@@ -150,13 +150,13 @@ public class BesOwnWin {
 								}
 								sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-								stat = new CountStat("", params
-										.getRequired("throughputStatFile"),
-										true);
 								LOG.info("created throughput statistic at  "
 										+ params.getRequired("throughputStatFile"));
 								subtaskIndex = getRuntimeContext()
 										.getIndexOfThisSubtask();
+								stat = new CountStat("", params
+										.getRequired("throughputStatFile") + subtaskIndex,
+										true);
 
 							}
 
