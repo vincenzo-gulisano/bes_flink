@@ -6,14 +6,12 @@ import java.util.Random;
 import java.util.TimeZone;
 
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
-import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.tuple.Tuple5;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.Collector;
@@ -65,9 +63,20 @@ class BesWindow
 class SGTupleContainer implements SGTuple {
 
 	private Tuple4<Long, Long, Long, Double> t;
+	private boolean isFake;
+
+	public SGTupleContainer() {
+		this.t = new Tuple4<Long, Long, Long, Double>(0L, 0L, 0L, 0D);
+		isFake = true;
+	}
 
 	public SGTupleContainer(Tuple5<Long, Long, Long, Double, Integer> t) {
 		this.t = new Tuple4<Long, Long, Long, Double>(t.f0, t.f1, t.f2, t.f3);
+		isFake = false;
+	}
+
+	public boolean isFake() {
+		return isFake;
 	}
 
 	public Tuple4<Long, Long, Long, Double> getT() {
@@ -174,6 +183,11 @@ public class BesOwnWin {
 									stat.increase(1);
 									cons = boundValues ? Math.min(cons, bound)
 											: cons;
+
+									LOG.info("conv " + subtaskIndex
+											+ " returning " + sysTS + "," + ts
+											+ "," + meter + "," + cons);
+
 									out.collect(new Tuple5<Long, Long, Long, Double, Integer>(
 											sysTS, ts, meter, cons,
 											subtaskIndex));
@@ -186,13 +200,15 @@ public class BesOwnWin {
 						}).startNewChain().setParallelism(conv_parallelism)
 				.name("conv").rebalance();
 
-		KeyedStream<Tuple4<Long, Long, Long, Double>, Tuple> agg = conv
+		SingleOutputStreamOperator<Tuple4<Long, Long, Long, Double>> agg = conv
+				.keyBy(2)
 				.flatMap(
 						new RichFlatMapFunction<Tuple5<Long, Long, Long, Double, Integer>, Tuple4<Long, Long, Long, Double>>() {
 
 							Aggregate<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>> aggregate;
 
 							ScaleGate sg;
+							int subtaskIndex;
 
 							public void open(Configuration parameters)
 									throws Exception {
@@ -202,6 +218,11 @@ public class BesOwnWin {
 										new BesWindow());
 								sg = new ScaleGateAArrImpl(3, conv_parallelism,
 										1);
+								for (int i = 0; i < conv_parallelism; i++) {
+									sg.addTuple(new SGTupleContainer(), i);
+								}
+								subtaskIndex = getRuntimeContext()
+										.getIndexOfThisSubtask();
 							}
 
 							@Override
@@ -210,23 +231,33 @@ public class BesOwnWin {
 									Collector<Tuple4<Long, Long, Long, Double>> out)
 									throws Exception {
 
+								LOG.info("agg " + subtaskIndex + " got tuple "
+										+ value);
+
 								sg.addTuple(new SGTupleContainer(value),
 										value.f4);
 
 								SGTuple readyT = sg.getNextReadyTuple(0);
 								while (readyT != null) {
+									SGTupleContainer sgtc = (SGTupleContainer) readyT;
+									if (!sgtc.isFake()) {
 
-									List<Tuple4<Long, Long, Long, Double>> result = aggregate
-											.processTuple(((SGTupleContainer) readyT)
-													.getT());
-									for (Tuple4<Long, Long, Long, Double> t : result)
-										out.collect(t);
+										LOG.info("agg " + subtaskIndex
+												+ " tuple " + sgtc.getT()
+												+ " is ready!");
+
+										List<Tuple4<Long, Long, Long, Double>> result = aggregate
+												.processTuple(sgtc.getT());
+										for (Tuple4<Long, Long, Long, Double> t : result)
+											out.collect(t);
+									}
+									readyT = sg.getNextReadyTuple(0);
 								}
 
 							}
 
 						}).startNewChain().setParallelism(agg_parallelism)
-				.name("agg").keyBy(2);
+				.name("agg");
 
 		SingleOutputStreamOperator<Tuple4<Long, Long, Long, Double>> map = agg
 				.flatMap(
