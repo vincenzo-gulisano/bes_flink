@@ -106,9 +106,6 @@ public class BesOwnWin {
 	@SuppressWarnings("serial")
 	public static void main(String[] args) throws Exception {
 
-		final int conv_parallelism = 3;
-		final int agg_parallelism = 2;
-
 		final ParameterTool params = ParameterTool.fromArgs(args);
 
 		// set up the execution environment
@@ -119,6 +116,9 @@ public class BesOwnWin {
 
 		// make parameters available in the web interface
 		env.getConfig().setGlobalJobParameters(params);
+
+		final int conv_parallelism = params.getInt("conv_parallelism");
+		final int agg_parallelism = params.getInt("agg_parallelism");
 
 		SingleOutputStreamOperator<String> in = env
 				.addSource(
