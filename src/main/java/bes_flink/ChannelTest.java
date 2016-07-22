@@ -93,9 +93,6 @@ public class ChannelTest {
 	@SuppressWarnings("serial")
 	public static void main(String[] args) throws Exception {
 
-		final int conv_parallelism = 3;
-		final int agg_parallelism = 2;
-
 		final ParameterTool params = ParameterTool.fromArgs(args);
 
 		// set up the execution environment
@@ -107,13 +104,16 @@ public class ChannelTest {
 		// make parameters available in the web interface
 		env.getConfig().setGlobalJobParameters(params);
 
+		final int conv_parallelism = params.getInt("conv_parallelism");
+		final int agg_parallelism = 2;
+
 		SingleOutputStreamOperator<String> in = env
 				.addSource(
 						new SourceSocket(params.getRequired("injectorIP"),
 								params.getInt("injectorPort"), '\n', 0))
 				.name("in").startNewChain();
 
-		DataStream<String> forward = in
+		DataStream<String> conv = in
 				.flatMap(new RichFlatMapFunction<String, String>() {
 
 					SimpleDateFormat sdf = new SimpleDateFormat(
@@ -157,9 +157,10 @@ public class ChannelTest {
 						out.collect(value);
 
 					}
-				}).startNewChain().setParallelism(1).name("conv").rebalance();
+				}).startNewChain().setParallelism(conv_parallelism)
+				.name("conv").rebalance();
 
-		forward.addSink(
+		conv.addSink(
 				new ChannelSinkSocket(params.getRequired("sinkIP"), params
 						.getInt("sinkPort"))).name("sink");
 
