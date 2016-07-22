@@ -56,36 +56,43 @@ public abstract class Receiver {
 			in = new BufferedReader(new InputStreamReader(
 					clientSocket.getInputStream()));
 			final StringBuilder buffer = new StringBuilder();
-			int data;
-
+//			int data;
+			char[] charArray = new char[2048];
+			int actualBuffered;
+			
 			System.out.println("Waiting for input.....");
 
-			while ((data = in.read()) != -1) {
+			while ((actualBuffered = in.read(charArray)) != -1) {
 
 				// System.out.print((char) data);
 				if (!gotChar) {
 					gotChar = true;
 					System.out.println("Got at least one char!");
 				}
+				
+				for (int i = 0; i < actualBuffered; i++) {
 
-				if (((char) data) == '\r' || ((char) data) == '\n') {
+					if (((char) charArray[i]) == '\r' || ((char) charArray[i]) == '\n') {
 
-					if (buffer.length() > 0) {
-						buffer.setLength(buffer.length() - 1);
+						if (buffer.length() > 0) {
+							buffer.setLength(buffer.length() - 1);
 
-						String tuple = buffer.toString();
+							String tuple = buffer.toString();
 
-						rateStat.increase(1);
-						latencyStat.add(System.currentTimeMillis()
-								- getTime(tuple));
-						receivedTuple(tuple);
+							rateStat.increase(1);
+							latencyStat.add(System.currentTimeMillis()
+									- getTime(tuple));
+							receivedTuple(tuple);
+						}
+
+						buffer.setLength(0);
+
+					} else {
+						buffer.append((char) charArray[i]);
 					}
-
-					buffer.setLength(0);
-
-				} else {
-					buffer.append((char) data);
+					
 				}
+
 
 			}
 

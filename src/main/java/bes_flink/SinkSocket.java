@@ -63,7 +63,7 @@ class SinkSocket extends RichSinkFunction<Tuple4<Long, Long, Long, Double>> {
 		// String msg = serialize(value);
 		// System.out.println("Sending " + msg);
 		outputStream.println(serialize(value));
-		outputStream.flush();
+		// outputStream.flush();
 
 		if (!firstSentReported) {
 			firstSentReported = true;
