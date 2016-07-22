@@ -184,9 +184,9 @@ public class BesOwnWin {
 									cons = boundValues ? Math.min(cons, bound)
 											: cons;
 
-									LOG.info("conv " + subtaskIndex
-											+ " returning " + sysTS + "," + ts
-											+ "," + meter + "," + cons);
+//									LOG.info("conv " + subtaskIndex
+//											+ " returning " + sysTS + "," + ts
+//											+ "," + meter + "," + cons);
 
 									out.collect(new Tuple5<Long, Long, Long, Double, Integer>(
 											sysTS, ts, meter, cons,
@@ -208,7 +208,7 @@ public class BesOwnWin {
 							Aggregate<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>> aggregate;
 
 							ScaleGate sg;
-							int subtaskIndex;
+//							int subtaskIndex;
 
 							public void open(Configuration parameters)
 									throws Exception {
@@ -221,8 +221,8 @@ public class BesOwnWin {
 								for (int i = 0; i < conv_parallelism; i++) {
 									sg.addTuple(new SGTupleContainer(), i);
 								}
-								subtaskIndex = getRuntimeContext()
-										.getIndexOfThisSubtask();
+//								subtaskIndex = getRuntimeContext()
+//										.getIndexOfThisSubtask();
 							}
 
 							@Override
@@ -231,8 +231,8 @@ public class BesOwnWin {
 									Collector<Tuple4<Long, Long, Long, Double>> out)
 									throws Exception {
 
-								LOG.info("agg " + subtaskIndex + " got tuple "
-										+ value);
+//								LOG.info("agg " + subtaskIndex + " got tuple "
+//										+ value);
 
 								sg.addTuple(new SGTupleContainer(value),
 										value.f4);
@@ -242,9 +242,9 @@ public class BesOwnWin {
 									SGTupleContainer sgtc = (SGTupleContainer) readyT;
 									if (!sgtc.isFake()) {
 
-										LOG.info("agg " + subtaskIndex
-												+ " tuple " + sgtc.getT()
-												+ " is ready!");
+//										LOG.info("agg " + subtaskIndex
+//												+ " tuple " + sgtc.getT()
+//												+ " is ready!");
 
 										List<Tuple4<Long, Long, Long, Double>> result = aggregate
 												.processTuple(sgtc.getT());
