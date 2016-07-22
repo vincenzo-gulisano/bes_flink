@@ -195,6 +195,7 @@ public class BesOwnWin {
 								} catch (Exception e) {
 									LOG.warn("Cannot convert input string "
 											+ value);
+									throw e;
 								}
 
 							}
