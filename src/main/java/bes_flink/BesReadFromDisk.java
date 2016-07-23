@@ -23,6 +23,45 @@ import scalegate.SGTuple;
 import scalegate.ScaleGate;
 import scalegate.ScaleGateAArrImpl;
 
+class SGTupleContainer implements SGTuple {
+
+	private Tuple4<Long, Long, Long, Double> t;
+	private boolean isFake;
+
+	public SGTupleContainer() {
+		this.t = new Tuple4<Long, Long, Long, Double>(0L, 0L, 0L, 0D);
+		isFake = true;
+	}
+
+	public SGTupleContainer(Tuple5<Long, Long, Long, Double, Integer> t) {
+		this.t = new Tuple4<Long, Long, Long, Double>(t.f0, t.f1, t.f2, t.f3);
+		isFake = false;
+	}
+
+	public boolean isFake() {
+		return isFake;
+	}
+
+	public Tuple4<Long, Long, Long, Double> getT() {
+		return t;
+	}
+
+	@Override
+	public int compareTo(SGTuple o) {
+		if (getTS() == o.getTS()) {
+			return 0;
+		} else {
+			return getTS() > o.getTS() ? 1 : -1;
+		}
+	}
+
+	@Override
+	public long getTS() {
+		return t.f1;
+	}
+
+}
+
 public class BesReadFromDisk {
 
 	static Logger LOG = LoggerFactory.getLogger(BesReadFromDisk.class);
