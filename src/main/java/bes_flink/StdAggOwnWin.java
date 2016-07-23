@@ -2,12 +2,10 @@ package bes_flink;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Random;
 import java.util.TimeZone;
 
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple4;
-import org.apache.flink.api.java.tuple.Tuple5;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
@@ -18,88 +16,9 @@ import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import scalegate.SGTuple;
+public class StdAggOwnWin {
 
-class BesWindow
-		implements
-		AggregateWindow<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>> {
-
-	double sum = 0.0;
-
-	@Override
-	public AggregateWindow<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>> factory() {
-		return new BesWindow();
-	}
-
-	@Override
-	public void setup() {
-	}
-
-	@Override
-	public void update(Tuple4<Long, Long, Long, Double> t) {
-		sum += t.f3;
-	}
-
-	@Override
-	public Tuple4<Long, Long, Long, Double> getAggregatedResult(long timestamp,
-			String groupby, Tuple4<Long, Long, Long, Double> triggeringTuple) {
-		return new Tuple4<Long, Long, Long, Double>(triggeringTuple.f0,
-				timestamp, Long.valueOf(groupby), sum);
-	}
-
-	@Override
-	public long getTimestamp(Tuple4<Long, Long, Long, Double> t) {
-		return t.f1;
-	}
-
-	@Override
-	public String getKey(Tuple4<Long, Long, Long, Double> t) {
-		return "" + t.f2;
-	}
-};
-
-class SGTupleContainer implements SGTuple {
-
-	private Tuple4<Long, Long, Long, Double> t;
-	private boolean isFake;
-
-	public SGTupleContainer() {
-		this.t = new Tuple4<Long, Long, Long, Double>(0L, 0L, 0L, 0D);
-		isFake = true;
-	}
-
-	public SGTupleContainer(Tuple5<Long, Long, Long, Double, Integer> t) {
-		this.t = new Tuple4<Long, Long, Long, Double>(t.f0, t.f1, t.f2, t.f3);
-		isFake = false;
-	}
-
-	public boolean isFake() {
-		return isFake;
-	}
-
-	public Tuple4<Long, Long, Long, Double> getT() {
-		return t;
-	}
-
-	@Override
-	public int compareTo(SGTuple o) {
-		if (getTS() == o.getTS()) {
-			return 0;
-		} else {
-			return getTS() > o.getTS() ? 1 : -1;
-		}
-	}
-
-	@Override
-	public long getTS() {
-		return t.f1;
-	}
-
-}
-
-public class BesOwnWin {
-
-	static Logger LOG = LoggerFactory.getLogger(BesOwnWin.class);
+	static Logger LOG = LoggerFactory.getLogger(StdAggOwnWin.class);
 
 	@SuppressWarnings("serial")
 	public static void main(String[] args) throws Exception {
@@ -131,7 +50,7 @@ public class BesOwnWin {
 							SimpleDateFormat sdf = new SimpleDateFormat(
 									"yyyy-MM-dd HH:mm:ss");
 
-							double bound = 0;
+							// int subtaskIndex;
 
 							private CountStat stat;
 
@@ -140,12 +59,12 @@ public class BesOwnWin {
 								ParameterTool params = (ParameterTool) getRuntimeContext()
 										.getExecutionConfig()
 										.getGlobalJobParameters();
-								bound = params.getDouble("bound");
-								LOG.info("Set bound to " + bound);
 								sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 
 								LOG.info("created throughput statistic at  "
 										+ params.getRequired("throughputStatFile"));
+								// subtaskIndex = getRuntimeContext()
+								// .getIndexOfThisSubtask();
 								stat = new CountStat("", params
 										.getRequired("throughputStatFile"),
 										true);
@@ -173,7 +92,6 @@ public class BesOwnWin {
 											.split(",")[3]);
 
 									stat.increase(1);
-									cons = Math.min(cons, bound);
 
 									// LOG.info("conv " + subtaskIndex
 									// + " returning " + sysTS + "," + ts
@@ -198,12 +116,24 @@ public class BesOwnWin {
 
 							Aggregate<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>> aggregate;
 
+							// ScaleGate sg;
+
+							// int subtaskIndex;
+
 							public void open(Configuration parameters)
 									throws Exception {
 								aggregate = new Aggregate<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>>(
 										1000L * 60L * 60L * 24L,
 										1000L * 60L * 60L * 24L,
 										new BesWindow());
+								// sg = new ScaleGateAArrImpl(3,
+								// conv_parallelism,
+								// 1);
+								// for (int i = 0; i < conv_parallelism; i++) {
+								// sg.addTuple(new SGTupleContainer(), i);
+								// }
+								// subtaskIndex = getRuntimeContext()
+								// .getIndexOfThisSubtask();
 							}
 
 							@Override
@@ -212,56 +142,37 @@ public class BesOwnWin {
 									Collector<Tuple4<Long, Long, Long, Double>> out)
 									throws Exception {
 
+								// LOG.info("agg " + subtaskIndex +
+								// " got tuple "
+								// + value);
+
+								// sg.addTuple(new SGTupleContainer(value),
+								// value.f4);
+								//
+								// SGTuple readyT = sg.getNextReadyTuple(0);
+								// while (readyT != null) {
+								// SGTupleContainer sgtc = (SGTupleContainer)
+								// readyT;
+								// if (!sgtc.isFake()) {
+
+								// LOG.info("agg " + subtaskIndex
+								// + " tuple " + sgtc.getT()
+								// + " is ready!");
+
 								List<Tuple4<Long, Long, Long, Double>> result = aggregate
 										.processTuple(value);
 								for (Tuple4<Long, Long, Long, Double> t : result)
 									out.collect(t);
+								// }
+								// readyT = sg.getNextReadyTuple(0);
+								// }
 
 							}
 
 						}).startNewChain().setParallelism(agg_parallelism)
 				.name("agg");
 
-		SingleOutputStreamOperator<Tuple4<Long, Long, Long, Double>> map = agg
-				.flatMap(
-						new RichFlatMapFunction<Tuple4<Long, Long, Long, Double>, Tuple4<Long, Long, Long, Double>>() {
-
-							double bound = 0;
-							private Random r;
-
-							public void open(Configuration parameters)
-									throws Exception {
-								ParameterTool params = (ParameterTool) getRuntimeContext()
-										.getExecutionConfig()
-										.getGlobalJobParameters();
-								bound = params.getDouble("bound");
-								LOG.info("Set bound to " + bound);
-								r = new Random();
-							}
-
-							private double laplace(double lambda) {
-								double u = r.nextDouble() * -1 + 0.5;
-								return -1
-										* (lambda * Math.signum(u) * Math
-												.log(1 - 2 * Math.abs(u)));
-							}
-
-							@Override
-							public void flatMap(
-									Tuple4<Long, Long, Long, Double> value,
-									Collector<Tuple4<Long, Long, Long, Double>> out)
-									throws Exception {
-
-								double noise = laplace(bound);
-								out.collect(new Tuple4<Long, Long, Long, Double>(
-										value.f0, value.f1, value.f2, value.f3
-												+ noise));
-
-							}
-
-						}).startNewChain().name("map");
-
-		map.addSink(
+		agg.addSink(
 				new SinkSocket(params.getRequired("sinkIP"), params
 						.getInt("sinkPort"))).name("sink");
 
