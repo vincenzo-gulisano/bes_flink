@@ -17,7 +17,7 @@ echo "Done..."
 sleep 2
 
 echo "Connecting to injector machine and starting injector"
-ssh 10.46.0.110 '/home/vincenzo/bes_flink/cluster_scripts/injector.sh '"${SLEEP_PERIOD}"' '"${BATCH_SIZE}"' '
+ssh 10.0.0.110 '/home/vincenzo/bes_flink/cluster_scripts/injector.sh '"${SLEEP_PERIOD}"' '"${BATCH_SIZE}"' '
 echo "Done..."
 sleep 2
 
@@ -33,22 +33,22 @@ echo "Done..."
 sleep 2
 
 echo "Connecting to sink machine and turning off everything"
-ssh 10.46.0.112 'pkill -9 java'
+ssh 10.0.0.112 'pkill -9 java'
 
 echo "Connecting to injector  machine and turning off everything"
-ssh 10.46.0.110 'pkill -9 java'
+ssh 10.0.0.110 'pkill -9 java'
 
 echo "Collecting files from sink machine"
-scp 10.46.0.112:/home/vincenzo/bes_flink/data_donotversion/output_rate.csv ${EXP_FOLDER}
-scp 10.46.0.112:/home/vincenzo/bes_flink/data_donotversion/output_latency.csv ${EXP_FOLDER}
-scp 10.46.0.112:/home/vincenzo/bes_flink/data_donotversion/sink.log ${EXP_FOLDER}
+scp 10.0.0.112:/home/vincenzo/bes_flink/data_donotversion/output_rate.csv ${EXP_FOLDER}
+scp 10.0.0.112:/home/vincenzo/bes_flink/data_donotversion/output_latency.csv ${EXP_FOLDER}
+scp 10.0.0.112:/home/vincenzo/bes_flink/data_donotversion/sink.log ${EXP_FOLDER}
 
 echo "Collecting files from injector machine"
-scp 10.46.0.110:/home/vincenzo/bes_flink/data_donotversion/input_rate.csv ${EXP_FOLDER}
-scp 10.46.0.110:/home/vincenzo/bes_flink/data_donotversion/injector.log ${EXP_FOLDER}
+scp 10.0.0.110:/home/vincenzo/bes_flink/data_donotversion/input_rate.csv ${EXP_FOLDER}
+scp 10.0.0.110:/home/vincenzo/bes_flink/data_donotversion/injector.log ${EXP_FOLDER}
 
 echo "Collecting files from slave machine"
-scp 10.46.0.111:/tmp/throughput.csv ${EXP_FOLDER}
+scp 10.0.0.111:/tmp/throughput.csv ${EXP_FOLDER}
 
 done
 done
