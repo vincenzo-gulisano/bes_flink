@@ -1,7 +1,7 @@
 SLEEP_PERIOD=$1
 BATCH_SIZE=$2
 
-OUT_FILE=/home/odroid/bes_flink/data_donotversion/injector.log
+OUT_FILE=/home/vincenzo/bes_flink/data_donotversion/injector.log
 
 echo "sleep period: ${SLEEP_PERIOD}" > ${OUT_FILE}
 echo "batch size: ${BATCH_SIZE}" >> ${OUT_FILE}
