@@ -22,13 +22,14 @@ echo "Done..."
 sleep 2
 
 echo "deploying query to flink"
-/home/vincenzo/flink/flink-1.4.0/bin/flink run -d -c bes_flink.BesOwnWin -p 1 /home/vincenzo/bes_flink/target/bes_flink-0.0.1-SNAPSHOT.jar --boundX 1.0 --maxCons 19.0 --sinkIP 10.0.0.112 --sinkPort 12346 --injectorIP 10.0.0.110 --injectorPort 12345 --throughputStatFile /tmp/throughput.csv
+/home/vincenzo/flink/flink-1.4.0/bin/flink run -d -c bes_flink.BesOwnWin -p 1 /home/vincenzo/bes_flink/target/bes_flink-0.0.1-SNAPSHOT.jar --bound 1.0 --maxCons 19.0 --sinkIP 10.0.0.112 --sinkPort 12346 --injectorIP 10.0.0.110 --injectorPort 12345 --throughputStatFile /tmp/throughput.csv
 echo "Done..."
 sleep 2
 
 echo "waiting 5 minutes"
 sleep 300
-/home/vincenzo/flink/flink-1.0.3/bin/flink cancel bes
+JOBID="$(/home/vincenzo/flink/flink-1.4.0/bin/flink list | grep "bes (RUNNING)" | cut -d' ' -f 4)"
+/home/vincenzo/flink/flink-1.4.0/bin/flink cancel $JOBID
 echo "Done..."
 sleep 2
 
