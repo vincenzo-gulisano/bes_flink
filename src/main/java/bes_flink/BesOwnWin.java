@@ -194,7 +194,7 @@ public class BesOwnWin {
 		map.addSink(new SinkSocket(params.getRequired("sinkIP"), params
 				.getInt("sinkPort")));
 
-		env.execute("bes");
+		env.execute(params.get("AppName"));
 
 	}
 }

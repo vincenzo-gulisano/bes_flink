@@ -117,7 +117,7 @@ public class StdAggOwnWin {
 		agg.addSink(new SinkSocket(params.getRequired("sinkIP"), params
 				.getInt("sinkPort")));
 
-		env.execute("bes");
+		env.execute(params.get("AppName"));
 
 	}
 }
