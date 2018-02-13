@@ -4,6 +4,9 @@ BATCH_SIZE=$3
 
 OUT_FILE=/home/vincenzo/bes_flink/data_donotversion/injector${OFFSET}.log
 
+rm ${OUT_FILE}
+rm /home/vincenzo/bes_flink/data_donotversion/input_rate${OFFSET}.csv
+
 INJECTOR_PORT=$((12345+$OFFSET))
 
 echo "sleep period: ${SLEEP_PERIOD}" > ${OUT_FILE}
