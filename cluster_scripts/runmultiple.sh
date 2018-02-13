@@ -19,9 +19,9 @@ do
                     mkdir ${EXP_FOLDER}
 
                     echo "Removing throughput files"
-                    ssh 10.0.0.110 '/tmp/throughput*.csv'
-                    ssh 10.0.0.111 '/tmp/throughput*.csv'
-                    ssh 10.0.0.112 '/tmp/throughput*.csv'
+                    ssh 10.0.0.110 '/home/vincenzo/bes_flink/data_donotversion/throughput*.csv'
+                    ssh 10.0.0.111 '/home/vincenzo/bes_flink/data_donotversion/throughput*.csv'
+                    ssh 10.0.0.112 '/home/vincenzo/bes_flink/data_donotversion/throughput*.csv'
 
                     for j in $(seq 1 $i)
                     do
@@ -49,7 +49,7 @@ do
                         INJECTOR_PORT=$((12345+$j))
                         SINK_PORT=$((12446+$j))
                         echo "deploying query to flink"
-                        /home/vincenzo/flink/flink-1.4.0/bin/flink run -d -c bes_flink.${METHOD} -p 1 /home/vincenzo/bes_flink/target/bes_flink-0.0.1-SNAPSHOT.jar --bound 1.0 --maxCons 19.0 --sinkIP 129.16.20.158 --sinkPort ${SINK_PORT} --injectorIP 129.16.20.158 --injectorPort ${INJECTOR_PORT} --throughputStatFile /tmp/throughput${j}.csv --AppName bes${j}
+                        /home/vincenzo/flink/flink-1.4.0/bin/flink run -d -c bes_flink.${METHOD} -p 1 /home/vincenzo/bes_flink/target/bes_flink-0.0.1-SNAPSHOT.jar --bound 1.0 --maxCons 19.0 --sinkIP 129.16.20.158 --sinkPort ${SINK_PORT} --injectorIP 129.16.20.158 --injectorPort ${INJECTOR_PORT} --throughputStatFile /home/vincenzo/bes_flink/data_donotversion/throughput${j}.csv --AppName bes${j}
                         echo "Done..."
 
                     done
@@ -84,9 +84,9 @@ do
                     scp 129.16.20.158:/home/vincenzo/bes_flink/data_donotversion/injector*.log ${EXP_FOLDER}
 
                     echo "Collecting files from slave machines"
-                    scp 10.0.0.110:/tmp/throughput*.csv ${EXP_FOLDER}
-                    scp 10.0.0.111:/tmp/throughput*.csv ${EXP_FOLDER}
-                    scp 10.0.0.112:/tmp/throughput*.csv ${EXP_FOLDER}
+                    scp 10.0.0.110:/home/vincenzo/bes_flink/data_donotversion/throughput*.csv ${EXP_FOLDER}
+                    scp 10.0.0.111:/home/vincenzo/bes_flink/data_donotversion/throughput*.csv ${EXP_FOLDER}
+                    scp 10.0.0.112:/home/vincenzo/bes_flink/data_donotversion/throughput*.csv ${EXP_FOLDER}
 
                 done
 
