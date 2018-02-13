@@ -8,7 +8,7 @@ do
             for METHOD in BesOwnWin StdAggOwnWin
             do
 
-                for i in 2 # First loop.
+                for i in 2 3 4 # First loop.
                 do
 
                     mkdir /home/vincenzo/bes_flink/exps/$i/
