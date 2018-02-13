@@ -18,11 +18,16 @@ do
                     echo "folder in which to store resulting files is ${EXP_FOLDER}"
                     mkdir ${EXP_FOLDER}
 
+                    echo "Removing throughput files"
+                    ssh 10.0.0.110 '/tmp/throughput*.csv'
+                    ssh 10.0.0.111 '/tmp/throughput*.csv'
+                    ssh 10.0.0.112 '/tmp/throughput*.csv'
+
                     for j in $(seq 1 $i)
                     do
 
                         echo "Connecting to sink machine and starting sink"
-                        ssh 10.0.0.112 '/home/vincenzo/bes_flink/cluster_scripts/sinkoffset.sh '"${j}"' '
+                        ssh 129.16.20.158 '/home/vincenzo/bes_flink/cluster_scripts/sinkoffset.sh '"${j}"' '
                         echo "Done..."
                         sleep 2
 
@@ -32,7 +37,7 @@ do
                     do
 
                         echo "Connecting to injector machine and starting injector"
-                        ssh 10.0.0.110 '/home/vincenzo/bes_flink/cluster_scripts/injectoroffset.sh '"${j}"' '"${SLEEP_PERIOD}"' '"${BATCH_SIZE}"' '
+                        ssh 129.16.20.158 '/home/vincenzo/bes_flink/cluster_scripts/injectoroffset.sh '"${j}"' '"${SLEEP_PERIOD}"' '"${BATCH_SIZE}"' '
                         echo "Done..."
                         sleep 2
 
@@ -42,9 +47,9 @@ do
                     do
 
                         INJECTOR_PORT=$((12345+$j))
-                        SINK_PORT=$((12346+$j))
+                        SINK_PORT=$((12446+$j))
                         echo "deploying query to flink"
-                        /home/vincenzo/flink/flink-1.4.0/bin/flink run -d -c bes_flink.${METHOD} -p 1 /home/vincenzo/bes_flink/target/bes_flink-0.0.1-SNAPSHOT.jar --bound 1.0 --maxCons 19.0 --sinkIP 10.0.0.112 --sinkPort ${SINK_PORT} --injectorIP 10.0.0.110 --injectorPort ${INJECTOR_PORT} --throughputStatFile /tmp/throughput${j}.csv --AppName bes${j}
+                        /home/vincenzo/flink/flink-1.4.0/bin/flink run -d -c bes_flink.${METHOD} -p 1 /home/vincenzo/bes_flink/target/bes_flink-0.0.1-SNAPSHOT.jar --bound 1.0 --maxCons 19.0 --sinkIP 129.16.20.158 --sinkPort ${SINK_PORT} --injectorIP 129.16.20.158 --injectorPort ${INJECTOR_PORT} --throughputStatFile /tmp/throughput${j}.csv --AppName bes${j}
                         echo "Done..."
 
                     done
@@ -64,22 +69,24 @@ do
                     done
 
                     echo "Connecting to sink machine and turning off everything"
-                    ssh 10.0.0.112 'pkill -9 java'
+                    ssh 129.16.20.158 'pkill -9 java'
 
                     echo "Connecting to injector  machine and turning off everything"
-                    ssh 10.0.0.110 'pkill -9 java'
+                    ssh 129.16.20.158 'pkill -9 java'
 
                     echo "Collecting files from sink machine"
-                    scp 10.0.0.112:/home/vincenzo/bes_flink/data_donotversion/output_rate*.csv ${EXP_FOLDER}
-                    scp 10.0.0.112:/home/vincenzo/bes_flink/data_donotversion/output_latency*.csv ${EXP_FOLDER}
-                    scp 10.0.0.112:/home/vincenzo/bes_flink/data_donotversion/sink*.log ${EXP_FOLDER}
+                    scp 129.16.20.158:/home/vincenzo/bes_flink/data_donotversion/output_rate*.csv ${EXP_FOLDER}
+                    scp 129.16.20.158:/home/vincenzo/bes_flink/data_donotversion/output_latency*.csv ${EXP_FOLDER}
+                    scp 129.16.20.158:/home/vincenzo/bes_flink/data_donotversion/sink*.log ${EXP_FOLDER}
 
                     echo "Collecting files from injector machine"
-                    scp 10.0.0.110:/home/vincenzo/bes_flink/data_donotversion/input_rate*.csv ${EXP_FOLDER}
-                    scp 10.0.0.110:/home/vincenzo/bes_flink/data_donotversion/injector*.log ${EXP_FOLDER}
+                    scp 129.16.20.158:/home/vincenzo/bes_flink/data_donotversion/input_rate*.csv ${EXP_FOLDER}
+                    scp 129.16.20.158:/home/vincenzo/bes_flink/data_donotversion/injector*.log ${EXP_FOLDER}
 
-                    echo "Collecting files from slave machine"
+                    echo "Collecting files from slave machines"
+                    scp 10.0.0.110:/tmp/throughput*.csv ${EXP_FOLDER}
                     scp 10.0.0.111:/tmp/throughput*.csv ${EXP_FOLDER}
+                    scp 10.0.0.112:/tmp/throughput*.csv ${EXP_FOLDER}
 
                 done
 

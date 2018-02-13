@@ -1,6 +1,6 @@
 OFFSET=$1
 OUT_FILE=/home/vincenzo/bes_flink/data_donotversion/sink${OFFSET}.log
-SINK_PORT=$((12346+$OFFSET))
+SINK_PORT=$((12446+$OFFSET))
 
 rm ${OUT_FILE}
 rm /home/vincenzo/bes_flink/data_donotversion/output_rate${OFFSET}.csv
