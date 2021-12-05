@@ -1,0 +1,44 @@
+java bes_flink.BesInjector --rateStatFile /Users/vinmas/repositories/bes_flink/data_donotversion/input_rate.csv --port 12345 --input /Users/vinmas/repositories/bes_flink/data_donotversion/sm1000.csv --sleepPeriod 1
+
+
+export CLASSPATH=/Users/vinmas/repositories/bes_flink/target/classes:/Users/vinmas/.m2/repository/org/apache/flink/flink-java/1.0.3/flink-java-1.0.3.jar:/Users/vinmas/.m2/repository/org/apache/flink/flink-core/1.0.3/flink-core-1.0.3.jar:/Users/vinmas/.m2/repository/org/apache/flink/flink-annotations/1.0.3/flink-annotations-1.0.3.jar:/Users/vinmas/.m2/repository/com/esotericsoftware/kryo/kryo/2.24.0/kryo-2.24.0.jar:/Users/vinmas/.m2/repository/com/esotericsoftware/minlog/minlog/1.2/minlog-1.2.jar:/Users/vinmas/.m2/repository/org/objenesis/objenesis/2.1/objenesis-2.1.jar:/Users/vinmas/.m2/repository/org/apache/avro/avro/1.7.6/avro-1.7.6.jar:/Users/vinmas/.m2/repository/org/apache/flink/flink-shaded-hadoop2/1.0.3/flink-shaded-hadoop2-1.0.3.jar:/Users/vinmas/.m2/repository/xmlenc/xmlenc/0.52/xmlenc-0.52.jar:/Users/vinmas/.m2/repository/commons-codec/commons-codec/1.4/commons-codec-1.4.jar:/Users/vinmas/.m2/repository/commons-io/commons-io/2.4/commons-io-2.4.jar:/Users/vinmas/.m2/repository/commons-net/commons-net/3.1/commons-net-3.1.jar:/Users/vinmas/.m2/repository/commons-collections/commons-collections/3.2.1/commons-collections-3.2.1.jar:/Users/vinmas/.m2/repository/javax/servlet/servlet-api/2.5/servlet-api-2.5.jar:/Users/vinmas/.m2/repository/org/mortbay/jetty/jetty-util/6.1.26/jetty-util-6.1.26.jar:/Users/vinmas/.m2/repository/com/sun/jersey/jersey-core/1.9/jersey-core-1.9.jar:/Users/vinmas/.m2/repository/commons-el/commons-el/1.0/commons-el-1.0.jar:/Users/vinmas/.m2/repository/commons-logging/commons-logging/1.1.3/commons-logging-1.1.3.jar:/Users/vinmas/.m2/repository/com/jamesmurty/utils/java-xmlbuilder/0.4/java-xmlbuilder-0.4.jar:/Users/vinmas/.m2/repository/commons-lang/commons-lang/2.6/commons-lang-2.6.jar:/Users/vinmas/.m2/repository/commons-configuration/commons-configuration/1.7/commons-configuration-1.7.jar:/Users/vinmas/.m2/repository/commons-digester/commons-digester/1.8.1/commons-digester-1.8.1.jar:/Users/vinmas/.m2/repository/org/codehaus/jackson/jackson-core-asl/1.8.8/jackson-core-asl-1.8.8.jar:/Users/vinmas/.m2/repository/org/codehaus/jackson/jackson-mapper-asl/1.8.8/jackson-mapper-asl-1.8.8.jar:/Users/vinmas/.m2/repository/com/thoughtworks/paranamer/paranamer/2.3/paranamer-2.3.jar:/Users/vinmas/.m2/repository/org/xerial/snappy/snappy-java/1.0.5/snappy-java-1.0.5.jar:/Users/vinmas/.m2/repository/com/jcraft/jsch/0.1.42/jsch-0.1.42.jar:/Users/vinmas/.m2/repository/org/apache/zookeeper/zookeeper/3.4.6/zookeeper-3.4.6.jar:/Users/vinmas/.m2/repository/io/netty/netty/3.7.0.Final/netty-3.7.0.Final.jar:/Users/vinmas/.m2/repository/org/apache/commons/commons-compress/1.4.1/commons-compress-1.4.1.jar:/Users/vinmas/.m2/repository/org/tukaani/xz/1.0/xz-1.0.jar:/Users/vinmas/.m2/repository/commons-beanutils/commons-beanutils-bean-collections/1.8.3/commons-beanutils-bean-collections-1.8.3.jar:/Users/vinmas/.m2/repository/commons-daemon/commons-daemon/1.0.13/commons-daemon-1.0.13.jar:/Users/vinmas/.m2/repository/javax/xml/bind/jaxb-api/2.2.2/jaxb-api-2.2.2.jar:/Users/vinmas/.m2/repository/javax/xml/stream/stax-api/1.0-2/stax-api-1.0-2.jar:/Users/vinmas/.m2/repository/javax/activation/activation/1.1/activation-1.1.jar:/Users/vinmas/.m2/repository/com/google/inject/guice/3.0/guice-3.0.jar:/Users/vinmas/.m2/repository/javax/inject/javax.inject/1/javax.inject-1.jar:/Users/vinmas/.m2/repository/aopalliance/aopalliance/1.0/aopalliance-1.0.jar:/Users/vinmas/.m2/repository/org/apache/commons/commons-math3/3.5/commons-math3-3.5.jar:/Users/vinmas/.m2/repository/org/apache/commons/commons-lang3/3.3.2/commons-lang3-3.3.2.jar:/Users/vinmas/.m2/repository/org/slf4j/slf4j-api/1.7.7/slf4j-api-1.7.7.jar:/Users/vinmas/.m2/repository/org/slf4j/slf4j-log4j12/1.7.7/slf4j-log4j12-1.7.7.jar:/Users/vinmas/.m2/repository/log4j/log4j/1.2.17/log4j-1.2.17.jar:/Users/vinmas/.m2/repository/org/apache/flink/force-shading/1.0.3/force-shading-1.0.3.jar:/Users/vinmas/.m2/repository/org/apache/flink/flink-streaming-java_2.10/1.0.3/flink-streaming-java_2.10-1.0.3.jar:/Users/vinmas/.m2/repository/org/apache/flink/flink-runtime_2.10/1.0.3/flink-runtime_2.10-1.0.3.jar:/Users/vinmas/.m2/repository/io/netty/netty-all/4.0.27.Final/netty-all-4.0.27.Final.jar:/Users/vinmas/.m2/repository/org/javassist/javassist/3.18.2-GA/javassist-3.18.2-GA.jar:/Users/vinmas/.m2/repository/org/scala-lang/scala-library/2.10.4/scala-library-2.10.4.jar:/Users/vinmas/.m2/repository/com/typesafe/akka/akka-actor_2.10/2.3.7/akka-actor_2.10-2.3.7.jar:/Users/vinmas/.m2/repository/com/typesafe/config/1.2.1/config-1.2.1.jar:/Users/vinmas/.m2/repository/com/typesafe/akka/akka-remote_2.10/2.3.7/akka-remote_2.10-2.3.7.jar:/Users/vinmas/.m2/repository/com/google/protobuf/protobuf-java/2.5.0/protobuf-java-2.5.0.jar:/Users/vinmas/.m2/repository/org/uncommons/maths/uncommons-maths/1.2.2a/uncommons-maths-1.2.2a.jar:/Users/vinmas/.m2/repository/com/typesafe/akka/akka-slf4j_2.10/2.3.7/akka-slf4j_2.10-2.3.7.jar:/Users/vinmas/.m2/repository/org/clapper/grizzled-slf4j_2.10/1.0.2/grizzled-slf4j_2.10-1.0.2.jar:/Users/vinmas/.m2/repository/com/github/scopt/scopt_2.10/3.2.0/scopt_2.10-3.2.0.jar:/Users/vinmas/.m2/repository/io/dropwizard/metrics/metrics-core/3.1.0/metrics-core-3.1.0.jar:/Users/vinmas/.m2/repository/io/dropwizard/metrics/metrics-jvm/3.1.0/metrics-jvm-3.1.0.jar:/Users/vinmas/.m2/repository/io/dropwizard/metrics/metrics-json/3.1.0/metrics-json-3.1.0.jar:/Users/vinmas/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.4.2/jackson-databind-2.4.2.jar:/Users/vinmas/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.4.0/jackson-annotations-2.4.0.jar:/Users/vinmas/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.4.2/jackson-core-2.4.2.jar:/Users/vinmas/.m2/repository/com/twitter/chill_2.10/0.7.4/chill_2.10-0.7.4.jar:/Users/vinmas/.m2/repository/com/twitter/chill-java/0.7.4/chill-java-0.7.4.jar:/Users/vinmas/.m2/repository/org/apache/commons/commons-math/2.2/commons-math-2.2.jar:/Users/vinmas/.m2/repository/org/apache/sling/org.apache.sling.commons.json/2.0.6/org.apache.sling.commons.json-2.0.6.jar:/Users/vinmas/.m2/repository/org/apache/flink/flink-clients_2.10/1.0.3/flink-clients_2.10-1.0.3.jar:/Users/vinmas/.m2/repository/org/apache/flink/flink-optimizer_2.10/1.0.3/flink-optimizer_2.10-1.0.3.jar:/Users/vinmas/.m2/repository/commons-cli/commons-cli/1.2/commons-cli-1.2.jar
+
+// For the server deployment
+
+To ssh with port forwarding ssh -L 18081:10.46.0.113:8081 -p 2222 vincenzo@129.16.22.6
+
+./bin/flink run -c bes_flink.Bes -p 1 /home/odroid/bes/bes_flink-0.0.1-SNAPSHOT.jar --boundX 1.0 --maxCons 19.0 --sinkIP 10.46.0.119 --sinkPort 12346 --injectorIP 10.46.0.119 --injectorPort 12345
+
+java bes_flink.BesInjector --rateStatFile /home/odroid/bes_flink/data_donotversion/input_rate.txt --port 12345 --input /home/odroid/bes_flink/data_donotversion/sm1000.sorted.txt --sleepPeriod 10
+
+java bes_flink.BesReceiver --port 12346 --rateStatFile /home/odroid/bes_flink/data_donotversion/output_rate.csv --latencyStatFile /home/odroid/bes_flink/data_donotversion/output_latency.csv
+
+---
+
+on task manager TM_MAX_OFFHEAP_SIZE="256m"
+taskmanager.memory.off-heap: false
+
+export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-armhf/jre/
+mvn package -Pbuild-jar
+
+-------
+
+Get data from the odroid 
+
+ssh -L 18081:10.46.0.113:8081 -L 12222:10.46.0.113:22 -p 2222 vincenzo@129.16.22.6
+scp -P 12222 odroid@127.0.0.1:/home/odroid/bes_flink/exps/160721a.zip /Users/vinmas/repositories/bes_flink/experiments/ 
+
+------
+
+Maven dependencies on the server side
+
+mvn install:install-file -Dfile=<path-to-file> -DgroupId=ScaleGate -DartifactId=ScaleGate -Dversion=0.0.1-SNAPSHOT -Dpackaging=jar
+
+and then modify pom.xml
+                <dependency>
+                        <groupId>ScaleGate</groupId>
+                        <artifactId>ScaleGate</artifactId>
+                        <version>0.0.1-SNAPSHOT</version>
+                </dependency>
+
+and then copy jar to flink/lib

@@ -1,0 +1,28 @@
+[
+
+/home/odroid/bes_flink/cluster_scripts/run.sh (on 10.46.0.113). No parameters either, everything super hard coded...
+
+]
+
+while (experiments exist): 
+
+	Connect to sink machine and start sink
+
+		On the sink machine, have scripts to start the sink
+
+[
+
+/home/odroid/bes_flink/cluster_scripts/sink.sh (on 10.46.0.119). No parameters (could at least specify where to store statistics / port to listen and so on...)
+
+]
+
+
+	Connect to injector machine and start injector
+
+		On the injector machine, have scripts to start the injector
+
+	Deploy the query and wait to finish
+
+	SCP injector machine and get stats in resulting folder
+
+	SCP sink machine and get stats in resulting folder

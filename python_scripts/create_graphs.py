@@ -6,7 +6,7 @@ from statistics import mean
 
 ### 160724a ###
 
-base_folder = '/Users/vinmas/repositories/bes_flink/data_donotversion/expsRev1/'
+base_folder = '/Users/vinmas/repositories/bes_flink/data_donotversion/expsRev1/180213/'
 
 input_rates = dict()
 throughputs = dict()
@@ -26,18 +26,15 @@ for main_class in ['BesOwnWin', 'StdAggOwnWin']:
     sorting_order[key] = []
     keys.append(key)
 
-    for batch_size in [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]:
+    for batch_size in [10, 50, 100, 150, 200, 250, 300]:
 
         input_rate_avgs = []
         throughput_avgs = []
         latency_avgs = []
 
-        for repetition in [0, 1, 2, 3, 4]:
-            if main_class is 'BesOwnWin':
-                files_folder='DP/'
-            else:
-                files_folder='NoDP/'
-            files_folder += 'exp_' + str(sleep_period) + '_' + str(batch_size) + '_' + str(repetition) + '/'
+        for repetition in [0, 1, 2]:
+
+            files_folder = main_class + '/exp_' + str(sleep_period) + '_' + str(batch_size) + '_' + str(repetition) + '/'
 
             # IF YOU WANT TO CREATE THE GRAPHS
             # [input_rate_ts, input_rate_v] = read_file_adjust_timestamps_and_create_graph_time_value_simple(
@@ -59,11 +56,11 @@ for main_class in ['BesOwnWin', 'StdAggOwnWin']:
 
             # IF YOU JUST WANT THE DATA
             input_rate_avgs.append(read_file_adjust_timestamps_get_average_within_steady_state(
-                    base_folder + files_folder + 'input_rate.csv', 60, 240))
+                    base_folder + files_folder + 'input_rate.csv', 60, 120))
             throughput_avgs.append(read_file_adjust_timestamps_get_average_within_steady_state(
-                    base_folder + files_folder + 'throughput.csv', 60, 240))
+                    base_folder + files_folder + 'throughput.csv', 60, 120))
             latency_avgs.append(read_file_adjust_timestamps_get_average_within_steady_state_ignore_special_value(
-                    base_folder + files_folder + 'output_latency.csv', 60, 240, -1))
+                    base_folder + files_folder + 'output_latency.csv', 60, 120, -1))
 
             # # This is for output rate and latency, not used yet
             # read_file_adjust_timestamps_and_create_graph_time_value_simple(
@@ -88,11 +85,11 @@ create_graph_multiple_time_value(input_rates, latencies, keys, 'Latency', 'Input
 create_graph_multiple_time_value_paper_version(input_rates, throughputs, keys, sorting_order,
                                                {'BesOwnWin': 'Bes', 'StdAggOwnWin': 'PO'},
                                                'Input rate (e/s)', 'Throughput (e/s)',
-                                               '/Users/vinmas/repositories/dpds_shared/BESjournal2016ACMTCPS/graphs/throughput.pdf')
-create_graph_multiple_time_value_log_paper_version(input_rates, latencies, keys, sorting_order,
+                                               '/Users/vinmas/repositories/dpds_shared/BESFGCS2018CR/fig/throughput.pdf')
+create_graph_multiple_time_value_paper_version(input_rates, latencies, keys, sorting_order,
                                                {'BesOwnWin': 'Bes', 'StdAggOwnWin': 'PO'},
                                                'Input rate (e/s)', 'Latency (ms)',
-                                               '/Users/vinmas/repositories/dpds_shared/BESjournal2016ACMTCPS/graphs/latency.pdf')
+                                               '/Users/vinmas/repositories/dpds_shared/BESFGCS2018CR/fig/latency.pdf')
 
 ### 160723a ###
 
